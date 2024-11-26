@@ -36,16 +36,25 @@ async function run() {
     const database = client.db("usersDB");
     const usersCollection = database.collection("users");
 
-
-    app.get('/users', async(req, res) =>{
+    // read or get user
+    app.get('/users', async (req, res) => {
       const cursor = usersCollection.find();
       const result = await cursor.toArray()
       res.send(result)
 
     })
 
+    // update  
 
-    app.post('/users', async(req, res) => {
+
+    app.get('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.findOne(query);
+      res.send(result)
+    })
+    // create user
+    app.post('/users', async (req, res) => {
       const user = req.body;
       console.log('new user', user);
       const result = await usersCollection.insertOne(user);
@@ -53,15 +62,38 @@ async function run() {
 
     });
 
+
+    // updated users
+
+    app.put('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const user = req.body;
+      console.log(id, user);
+      const filter = { _id: new ObjectId(id) };
+      // const options = { upsert: true }
+
+      const updatedUser = {
+        $set: {
+            name: user.name,
+            email: user.email,
+        },
+    };
+
+    const result = await usersCollection.updateOne(filter, updatedUser);
+    res.send(result);
+
+    })
+
     // delete 
 
-    app.delete('/users/:id', async(req, res) =>{
+    app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
       console.log('Please delete', id)
-      const query = { _id: new ObjectId (id)};
+      const query = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(query);
       res.send(result)
     })
+
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
